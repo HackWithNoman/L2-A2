@@ -4,7 +4,10 @@ import { pool } from "../config/db";
 
 const auth = (...roles: string[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization;
+    const bearerHeader = req.headers.authorization;
+
+    const bearer = bearerHeader!.split(" ");
+    const token = bearer[1];
 
     if (!token) {
       throw new Error("You are not authorized!!");

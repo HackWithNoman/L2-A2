@@ -16,7 +16,7 @@ const initDB = async () => {
     password TEXT NOT NULL,
     phone VARCHAR(250) NOT NULL,
     role VARCHAR(100) NOT NULL,
-    age INT, 
+    age INT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
     )
@@ -37,11 +37,15 @@ const initDB = async () => {
   // Bookings
   await pool.query(/* SQL */ `
     CREATE TABLE IF NOT EXISTS bookings(
-    id SERIAL PRIMARY KEY,
-    customer_id SERIAL,
-    vehicle_id SERIAL,
-    FOREIGN KEY (customer_id) REFERENCES users(id),
-    FOREIGN KEY (vehicle_id) REFERENCES vehicles(id)
+      id SERIAL PRIMARY KEY,
+      customer_id INT NOT NULL,
+      vehicle_id INT NOT NULL,
+      rent_start_date DATE NOT NULL,
+      rent_end_date DATE NOT NULL,
+      total_price INT NOT NULL CHECK (total_price > 0),
+      status VARCHAR(50) DEFAULT 'active',
+      FOREIGN KEY (customer_id) REFERENCES users(id),
+      FOREIGN KEY (vehicle_id) REFERENCES vehicles(id)
     )
     `);
 };

@@ -10,8 +10,8 @@ const updateUserInDb = async (id: string, payload: any) => {
 
   const result = await pool.query(
     `
-    UPDATE users 
-    SET 
+    UPDATE users
+    SET
       name = COALESCE($1, name),
       email = COALESCE($2, email),
       role = COALESCE($3, role)
@@ -27,7 +27,8 @@ const updateUserInDb = async (id: string, payload: any) => {
 const deleteUserFromDb = async (id: string) => {
   // 1. Check if the user has any active bookings
   const activeBookings = await pool.query(
-    `SELECT * FROM bookings WHERE user_id = $1 AND availability_status = 'booked'`,
+    `SELECT * FROM bookings WHERE customer_id = $1 AND status = 'active'
+`,
     [id],
   );
 
