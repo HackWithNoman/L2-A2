@@ -23,8 +23,8 @@ const createVehicleIntoDb = async (payload: TVehicle) => {
     type,
     registration_number,
     daily_rent_price,
-    availability_status) 
-    VALUES ($1, $2, $3, $4, $5) 
+    availability_status)
+    VALUES ($1, $2, $3, $4, $5)
     RETURNING *;
     `,
     [
@@ -45,7 +45,6 @@ const getVehiclesFromDb = async () => {
     SELECT * FROM vehicles
     `,
   );
-
   return result;
 };
 
@@ -65,8 +64,8 @@ const updateVehicleInDb = async (id: string, payload: TUpdateVehicle) => {
 
   const result = await pool.query(
     `
-    UPDATE vehicles 
-    SET 
+    UPDATE vehicles
+    SET
       vehicle_name = COALESCE($1, vehicle_name),
       daily_rent_price = COALESCE($2, daily_rent_price),
       availability_status = COALESCE($3, availability_status)
