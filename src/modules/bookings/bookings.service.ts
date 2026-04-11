@@ -119,7 +119,18 @@ const updateBookingInDb = async (userId: number, payload: UpdatePayload) => {
       [bookingId],
     );
 
-    return { message: "Booking cancelled successfully" };
+    await pool.query(
+      "UPDATE vehicles SET availability_status = 'available' WHERE id = $1",
+      [booking.vehicle_id],
+    );
+
+    return { 
+      message: "Booking cancelled successfully",
+      booking: {
+        ...booking,
+        status: "cancelled"
+      }
+    };
   }
 
   if (role === "admin") {
@@ -133,7 +144,16 @@ const updateBookingInDb = async (userId: number, payload: UpdatePayload) => {
       [booking.vehicle_id],
     );
 
-    return { message: "Booking marked as returned" };
+    return { 
+      message: "Booking marked as returned. Vehicle is now available",
+      booking: {
+        ...booking,
+        status: "returned",
+        vehicle: {
+          availability_status: "available"
+        }
+      }
+    };
   }
 
   throw new Error("Invalid role");
