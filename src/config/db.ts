@@ -1,13 +1,16 @@
 import { Pool } from "pg";
 import config from ".";
 
-// DB
 export const pool = new Pool({
-  connectionString: `${config.connection_str}`,
+  connectionString: config.connection_str,
 });
 
-const initDB = async () => {
-  // User
+export const initDB = async () => {
+  if (!config.connection_str) {
+    console.log("No CONNECTION_STR, skipping DB init");
+    return;
+  }
+
   await pool.query(/* SQL */ `
     CREATE TABLE IF NOT EXISTS users(
     id SERIAL PRIMARY KEY,
@@ -22,7 +25,6 @@ const initDB = async () => {
     )
     `);
 
-  // Vehicles
   await pool.query(/* SQL */ `
     CREATE TABLE IF NOT EXISTS vehicles(
     id SERIAL PRIMARY KEY,
@@ -34,7 +36,6 @@ const initDB = async () => {
     )
     `);
 
-  // Bookings
   await pool.query(/* SQL */ `
     CREATE TABLE IF NOT EXISTS bookings(
       id SERIAL PRIMARY KEY,
@@ -49,5 +50,3 @@ const initDB = async () => {
     )
     `);
 };
-
-export default initDB;
