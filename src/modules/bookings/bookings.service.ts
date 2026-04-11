@@ -1,45 +1,146 @@
 import { pool } from "../../config/db";
 
-const createBookingInDb = async (userId: number, payload: any) => {
-  const { vehicleId, startDate, endDate } = payload;
+interface BookingPayload {
+  vehicle_id: number;
+  rent_start_date: string;
+  rent_end_date: string;
+}
 
-  // 1. Check if vehicle is available
-  const vehicle = await pool.query("SELECT * FROM vehicles WHERE id = $1", [
-    vehicleId,
-  ]);
+const createBookingInDb = async (customerId: number, payload: BookingPayload) => {
+  const { vehicle_id, rent_start_date, rent_end_date } = payload;
 
-  if (vehicle.rowCount === 0) throw new Error("Vehicle not found");
-  if (vehicle.rows[0].availability_status !== "available") {
+  // 1. Check if vehicle exists and is available
+  const vehicleResult = await pool.query(
+    "SELECT * FROM vehicles WHERE id = $1",
+    [vehicle_id],
+  );
+
+  if (vehicleResult.rowCount === 0) throw new Error("Vehicle not found");
+
+  const vehicle = vehicleResult.rows[0];
+
+  if (!vehicle.vehicle_name) {
+    throw new Error("Vehicle data is incomplete");
+  }
+
+  if (vehicle.availability_status !== "available") {
     throw new Error("Vehicle is already booked for these dates");
   }
 
-  // 2. Calculate Total Price
-  // Formula: (EndDate - StartDate) in days * daily_rate
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  // 2. Calculate total price
+  const start = new Date(rent_start_date);
+  const end = new Date(rent_end_date);
   const diffInTime = end.getTime() - start.getTime();
   const diffInDays = Math.ceil(diffInTime / (1000 * 3600 * 24));
 
   if (diffInDays <= 0) throw new Error("End date must be after start date");
 
-  const totalPrice = diffInDays * vehicle.rows[0].daily_rate;
+  const totalPrice = diffInDays * vehicle.daily_rent_price; // ✅ fixed field name
 
-  // 3. Create the Booking
+  // 3. Create the booking
   const newBooking = await pool.query(
-    `INSERT INTO bookings (user_id, vehicle_id, start_date, end_date, total_price, availability_status) 
-     VALUES ($1, $2, $3, $4, $5, 'booked') RETURNING *`,
-    [userId, vehicleId, startDate, endDate, totalPrice],
+    `INSERT INTO bookings (customer_id, vehicle_id, rent_start_date, rent_end_date, total_price, status)
+     VALUES ($1, $2, $3, $4, $5, 'active') RETURNING *`,
+    [customerId, vehicle_id, rent_start_date, rent_end_date, totalPrice],
   );
 
-  // 4. Update the Vehicle status to 'booked'
+  // 4. Update vehicle status to 'booked'
   await pool.query(
     "UPDATE vehicles SET availability_status = 'booked' WHERE id = $1",
-    [vehicleId],
+    [vehicle_id],
   );
 
-  return newBooking;
+  // 5. Return shaped response matching API spec
+  return {
+    ...newBooking.rows[0],
+    vehicle: {
+      vehicle_name: vehicle.vehicle_name,
+      daily_rent_price: vehicle.daily_rent_price,
+    },
+  };
+};
+
+const getBookingsFromDb = async (userId: number, role: string) => {
+  let query = `
+    SELECT 
+      b.id, b.rent_start_date, b.rent_end_date, b.total_price, b.status,
+      c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
+      v.vehicle_name, v.type, v.registration_number, v.daily_rent_price
+    FROM bookings b
+    JOIN users c ON b.customer_id = c.id
+    JOIN vehicles v ON b.vehicle_id = v.id
+  `;
+
+  if (role === "user") {
+    query += ` WHERE b.customer_id = $1 ORDER BY b.id DESC`;
+    const result = await pool.query(query, [userId]);
+    return result.rows;
+  }
+
+  query += ` ORDER BY b.id DESC`;
+  const result = await pool.query(query);
+  return result.rows;
+};
+
+interface UpdatePayload {
+  bookingId: string;
+  role: string;
+}
+
+const updateBookingInDb = async (userId: number, payload: UpdatePayload) => {
+  const { bookingId, role } = payload;
+
+  const bookingResult = await pool.query(
+    "SELECT * FROM bookings WHERE id = $1",
+    [bookingId],
+  );
+
+  if (bookingResult.rowCount === 0) {
+    throw new Error("Booking not found");
+  }
+
+  const booking = bookingResult.rows[0];
+
+  if (role === "user") {
+    if (booking.customer_id !== userId) {
+      throw new Error("You can only cancel your own bookings");
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDate = new Date(booking.rent_start_date);
+
+    if (today >= startDate) {
+      throw new Error("Cannot cancel booking after start date");
+    }
+
+    await pool.query(
+      "UPDATE bookings SET status = 'cancelled' WHERE id = $1",
+      [bookingId],
+    );
+
+    return { message: "Booking cancelled successfully" };
+  }
+
+  if (role === "admin") {
+    await pool.query(
+      "UPDATE bookings SET status = 'returned' WHERE id = $1",
+      [bookingId],
+    );
+
+    await pool.query(
+      "UPDATE vehicles SET availability_status = 'available' WHERE id = $1",
+      [booking.vehicle_id],
+    );
+
+    return { message: "Booking marked as returned" };
+  }
+
+  throw new Error("Invalid role");
 };
 
 export const bookingServices = {
   createBookingInDb,
+  getBookingsFromDb,
+  updateBookingInDb,
 };
