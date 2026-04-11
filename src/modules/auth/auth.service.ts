@@ -42,7 +42,7 @@ const loginuserIntoDB = async (email: string, password: string) => {
     role: user.rows[0].role,
   };
 
-  const secret = "a-string-secret-at-least-256-bits-long";
+  const secret = process.env.JWT_SECRET as string;
 
   const token = jwt.sign(jwtPayload, secret, { expiresIn: "7d" });
 
