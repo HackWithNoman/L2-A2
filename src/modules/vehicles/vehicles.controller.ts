@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { vehicleServices } from "./vehicles.service";
+import { vehicleServices } from "./vehicles.service.js";
 
 const createVehicleIntoDb = async (req: Request, res: Response) => {
   try {

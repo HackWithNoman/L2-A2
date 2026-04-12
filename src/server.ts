@@ -1,10 +1,10 @@
 import express, { Application, Request, Response } from "express";
-import config from "./config";
-import { initDB } from "./config/db";
-import { authRoute } from "./modules/auth/auth.route";
-import { bookingRoute } from "./modules/bookings/bookings.route";
-import { userRoute } from "./modules/users/users.route";
-import { vehicleRoute } from "./modules/vehicles/vehicles.route";
+import config from "./config/index.js";
+import { initDB } from "./config/db.js";
+import { authRoute } from "./modules/auth/auth.route.js";
+import { bookingRoute } from "./modules/bookings/bookings.route.js";
+import { userRoute } from "./modules/users/users.route.js";
+import { vehicleRoute } from "./modules/vehicles/vehicles.route.js";
 
 const port = config.port || 3000;
 

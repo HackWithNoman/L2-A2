@@ -1,4 +1,4 @@
-import { pool } from "../../config/db";
+import { pool } from "../../config/db.js";
 
 interface BookingPayload {
   vehicle_id: number;

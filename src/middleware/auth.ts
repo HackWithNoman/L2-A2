@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { pool } from "../config/db";
+import { pool } from "../config/db.js";
 
 const auth = (...roles: string[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {

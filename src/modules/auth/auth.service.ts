@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { pool } from "../../config/db";
+import { pool } from "../../config/db.js";
 
 const createUserIntoDb = async (payload: Record<string, unknown>) => {
   const { name, email, password, phone, role } = payload;

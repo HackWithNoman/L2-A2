@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { authServices } from "./auth.service";
+import { authServices } from "./auth.service.js";
 
 const createUserIntoDb = async (req: Request, res: Response) => {
   try {
