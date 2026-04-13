@@ -1,23 +1,24 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { authServices } from "./auth.service.js";
 
-const createUserIntoDb = async (req: Request, res: Response) => {
+const createUserIntoDb = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await authServices.createUserIntoDb(req.body);
-    return res.status(200).json({
+    return res.status(201).json({
       success: true,
       message: "User registered successfully",
       data: result.rows[0],
     });
   } catch (error: any) {
-    return res.status(500).json({
+    const statusCode = error.statusCode || 500;
+    return res.status(statusCode).json({
       success: false,
       message: error.message,
     });
   }
 };
 
-const loginuserIntoDB = async (req: Request, res: Response) => {
+const loginuserIntoDB = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await authServices.loginuserIntoDB(
       req.body.email,
@@ -29,7 +30,8 @@ const loginuserIntoDB = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    return res.status(500).json({
+    const statusCode = error.statusCode || 500;
+    return res.status(statusCode).json({
       success: false,
       message: error.message,
     });

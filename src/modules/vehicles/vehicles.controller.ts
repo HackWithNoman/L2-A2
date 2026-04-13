@@ -104,7 +104,7 @@ const deleteVehicle = async (req: Request, res: Response) => {
       data: result.rows[0],
     });
   } catch (error: any) {
-    const statusCode = error.message.includes("active bookings") ? 400 : 500;
+    const statusCode = error.statusCode || 500;
 
     return res.status(statusCode).json({
       success: false,

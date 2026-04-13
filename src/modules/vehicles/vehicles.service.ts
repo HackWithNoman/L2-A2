@@ -79,13 +79,15 @@ const updateVehicleInDb = async (id: string, payload: TUpdateVehicle) => {
 };
 
 const deleteVehicleFromDb = async (id: string) => {
-  const activeBookings = await pool.query(
-    `SELECT * FROM vehicles WHERE id = $1 AND availability_status = 'booked'`,
+  const existingBookings = await pool.query(
+    `SELECT * FROM bookings WHERE vehicle_id = $1`,
     [id],
   );
 
-  if (activeBookings.rows.length > 0) {
-    throw new Error("Cannot delete vehicle: It is currently booked.");
+  if (existingBookings.rows.length > 0) {
+    const error = new Error("Cannot delete vehicle: It has associated bookings.") as Error & { statusCode: number };
+    error.statusCode = 400;
+    throw error;
   }
 
   const result = await pool.query(
@@ -94,7 +96,9 @@ const deleteVehicleFromDb = async (id: string) => {
   );
 
   if (result.rowCount === 0) {
-    throw new Error("Vehicle not found.");
+    const error = new Error("Vehicle not found.") as Error & { statusCode: number };
+    error.statusCode = 404;
+    throw error;
   }
 
   return result;

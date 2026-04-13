@@ -26,13 +26,17 @@ const loginuserIntoDB = async (email: string, password: string) => {
   );
 
   if (user.rows.length === 0) {
-    throw new Error("User not found!!");
+    const error = new Error("User not found!!") as Error & { statusCode: number };
+    error.statusCode = 404;
+    throw error;
   }
 
   const matchPasword = await bcrypt.compare(password, user.rows[0].password);
 
   if (!matchPasword) {
-    throw new Error("Invalid Credentials!!");
+    const error = new Error("Invalid Credentials!!") as Error & { statusCode: number };
+    error.statusCode = 401;
+    throw error;
   }
 
   const jwtPayload = {

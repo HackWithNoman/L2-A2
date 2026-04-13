@@ -1,4 +1,4 @@
-import express, { Application, Request, Response } from "express";
+import express, { Application, Request, Response, NextFunction } from "express";
 import config from "./config/index.js";
 import { initDB } from "./config/db.js";
 import { authRoute } from "./modules/auth/auth.route.js";
@@ -19,6 +19,15 @@ app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/users", userRoute);
 app.use("/api/v1/vehicles", vehicleRoute);
 app.use("/api/v1/bookings", bookingRoute);
+
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error(err.message);
+  const statusCode = (err as any).statusCode || 500;
+  res.status(statusCode).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
+});
 
 let dbInitialized = false;
 

@@ -33,7 +33,9 @@ const deleteUserFromDb = async (id: string) => {
   );
 
   if (activeBookings.rows.length > 0) {
-    throw new Error("Cannot delete user: They have active bookings.");
+    const error = new Error("Cannot delete user: They have active bookings.") as Error & { statusCode: number };
+    error.statusCode = 400;
+    throw error;
   }
 
   // 2. If no active bookings, proceed to delete the user
@@ -43,7 +45,9 @@ const deleteUserFromDb = async (id: string) => {
   );
 
   if (result.rowCount === 0) {
-    throw new Error("User not found.");
+    const error = new Error("User not found.") as Error & { statusCode: number };
+    error.statusCode = 404;
+    throw error;
   }
 
   return result;

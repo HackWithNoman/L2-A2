@@ -63,7 +63,11 @@ const updateUser = async (req: Request, res: Response) => {
       data: result.rows[0],
     });
   } catch (error: any) {
-    return res.status(500).json({ success: false, message: error.message });
+    const statusCode = error.statusCode || 500;
+    return res.status(statusCode).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
@@ -80,9 +84,7 @@ const deleteUser = async (req: Request, res: Response) => {
       data: result.rows[0],
     });
   } catch (error: any) {
-    // If the error is about active bookings, send 400 (Bad Request)
-    const statusCode = error.message.includes("active bookings") ? 400 : 500;
-
+    const statusCode = error.statusCode || 500;
     return res.status(statusCode).json({
       success: false,
       message: error.message,

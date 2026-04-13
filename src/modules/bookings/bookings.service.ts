@@ -15,16 +15,24 @@ const createBookingInDb = async (customerId: number, payload: BookingPayload) =>
     [vehicle_id],
   );
 
-  if (vehicleResult.rowCount === 0) throw new Error("Vehicle not found");
+  if (vehicleResult.rowCount === 0) {
+    const error = new Error("Vehicle not found") as Error & { statusCode: number };
+    error.statusCode = 404;
+    throw error;
+  }
 
   const vehicle = vehicleResult.rows[0];
 
   if (!vehicle.vehicle_name) {
-    throw new Error("Vehicle data is incomplete");
+    const error = new Error("Vehicle data is incomplete") as Error & { statusCode: number };
+    error.statusCode = 400;
+    throw error;
   }
 
   if (vehicle.availability_status !== "available") {
-    throw new Error("Vehicle is already booked for these dates");
+    const error = new Error("Vehicle is already booked for these dates") as Error & { statusCode: number };
+    error.statusCode = 400;
+    throw error;
   }
 
   // 2. Calculate total price
@@ -33,7 +41,11 @@ const createBookingInDb = async (customerId: number, payload: BookingPayload) =>
   const diffInTime = end.getTime() - start.getTime();
   const diffInDays = Math.ceil(diffInTime / (1000 * 3600 * 24));
 
-  if (diffInDays <= 0) throw new Error("End date must be after start date");
+  if (diffInDays <= 0) {
+    const error = new Error("End date must be after start date") as Error & { statusCode: number };
+    error.statusCode = 400;
+    throw error;
+  }
 
   const totalPrice = diffInDays * vehicle.daily_rent_price; // ✅ fixed field name
 
@@ -96,14 +108,18 @@ const updateBookingInDb = async (userId: number, payload: UpdatePayload) => {
   );
 
   if (bookingResult.rowCount === 0) {
-    throw new Error("Booking not found");
+    const error = new Error("Booking not found") as Error & { statusCode: number };
+    error.statusCode = 404;
+    throw error;
   }
 
   const booking = bookingResult.rows[0];
 
   if (role === "user") {
     if (booking.customer_id !== userId) {
-      throw new Error("You can only cancel your own bookings");
+      const error = new Error("You can only cancel your own bookings") as Error & { statusCode: number };
+      error.statusCode = 403;
+      throw error;
     }
 
     const today = new Date();
@@ -111,7 +127,9 @@ const updateBookingInDb = async (userId: number, payload: UpdatePayload) => {
     const startDate = new Date(booking.rent_start_date);
 
     if (today >= startDate) {
-      throw new Error("Cannot cancel booking after start date");
+      const error = new Error("Cannot cancel booking after start date") as Error & { statusCode: number };
+      error.statusCode = 400;
+      throw error;
     }
 
     await pool.query(
@@ -156,7 +174,9 @@ const updateBookingInDb = async (userId: number, payload: UpdatePayload) => {
     };
   }
 
-  throw new Error("Invalid role");
+  const error = new Error("Invalid role") as Error & { statusCode: number };
+  error.statusCode = 400;
+  throw error;
 };
 
 export const bookingServices = {

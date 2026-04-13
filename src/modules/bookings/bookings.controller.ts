@@ -26,26 +26,10 @@ const createBooking = async (req: Request, res: Response) => {
       data: booking,
     });
   } catch (error: any) {
-    const knownErrors = [
-      "Vehicle not found",
-      "Vehicle data is incomplete",
-      "Vehicle is already booked for these dates",
-      "End date must be after start date",
-    ];
-
-    if (knownErrors.includes(error.message)) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-        errors: error.message,
-      });
-      return;
-    }
-
-    res.status(500).json({
+    const statusCode = error.statusCode || 500;
+    res.status(statusCode).json({
       success: false,
-      message: "Internal server error",
-      errors: error.message,
+      message: error.message || "Internal server error",
     });
   }
 };
@@ -101,10 +85,10 @@ const getBookings = async (req: Request, res: Response) => {
       })),
     });
   } catch (error: any) {
-    res.status(500).json({
+    const statusCode = error.statusCode || 500;
+    res.status(statusCode).json({
       success: false,
-      message: "Internal server error",
-      errors: error.message,
+      message: error.message || "Internal server error",
     });
   }
 };
@@ -164,25 +148,10 @@ const updateBooking = async (req: Request, res: Response) => {
       data: result.booking,
     });
   } catch (error: any) {
-    const knownErrors = [
-      "Booking not found",
-      "You can only cancel your own bookings",
-      "Cannot cancel booking after start date",
-    ];
-
-    if (knownErrors.includes(error.message)) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-        errors: error.message,
-      });
-      return;
-    }
-
-    res.status(500).json({
+    const statusCode = error.statusCode || 500;
+    res.status(statusCode).json({
       success: false,
-      message: "Internal server error",
-      errors: error.message,
+      message: error.message || "Internal server error",
     });
   }
 };
