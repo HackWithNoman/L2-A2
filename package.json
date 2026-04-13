@@ -1,17 +1,21 @@
 {
-  "name": "l2-a2-2nd",
+  "name": "vehicle-rental-system",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "RESTful API for vehicle rental management with JWT authentication",
+  "main": "dist/server.js",
   "type": "module",
   "scripts": {
     "dev": "nodemon --exec tsx ./src/server.ts",
     "start": "node dist/server.js",
     "build": "tsc"
   },
-  "keywords": [],
+  "keywords": ["vehicle-rental", "rest-api", "express", "postgresql", "jwt"],
   "author": "",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HackWithNoman/L2-A2"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.2.3",
