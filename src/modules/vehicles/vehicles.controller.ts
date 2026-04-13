@@ -11,7 +11,8 @@ const createVehicleIntoDb = async (req: Request, res: Response) => {
       data: result.rows[0],
     });
   } catch (error: any) {
-    return res.status(500).json({
+    const statusCode = error.statusCode || 500;
+    return res.status(statusCode).json({
       success: false,
       message: error.message || "Internal Server Error",
     });
@@ -101,7 +102,6 @@ const deleteVehicle = async (req: Request, res: Response) => {
     return res.status(200).json({
       success: true,
       message: "Vehicle deleted successfully",
-      data: result.rows[0],
     });
   } catch (error: any) {
     const statusCode = error.statusCode || 500;
